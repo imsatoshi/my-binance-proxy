@@ -42,14 +42,17 @@ class BinanceClient {
    */
   _prepareRequest(method, endpoint, params = {}, requiresSignature = false) {
     let queryString = '';
+    let requestParams = { ...params };
 
-    if (Object.keys(params).length > 0) {
-      queryString = this._buildQueryString(params);
+    if (Object.keys(requestParams).length > 0) {
+      queryString = this._buildQueryString(requestParams);
     }
 
     // Add timestamp for authenticated requests
     if (requiresSignature) {
       const timestamp = Date.now();
+      requestParams.timestamp = timestamp;
+
       if (queryString) {
         queryString += `&timestamp=${timestamp}`;
       } else {
@@ -58,16 +61,30 @@ class BinanceClient {
 
       // Generate signature
       const signature = this._generateSignature(queryString);
-      queryString += `&signature=${signature}`;
+      requestParams.signature = signature;
     }
 
-    return {
+    // For GET requests, use query parameters
+    // For POST/PUT/DELETE, may need to use body or query depending on endpoint
+    const config = {
       method,
-      url: endpoint,
-      params: queryString ? null : undefined,
-      data: method === 'POST' || method === 'PUT' ? params : undefined,
-      paramsSerializer: () => queryString
+      url: endpoint
     };
+
+    if (method === 'GET') {
+      config.params = requestParams;
+    } else if (method === 'POST' || method === 'PUT') {
+      // For signed requests, params go in query string
+      if (requiresSignature) {
+        config.params = requestParams;
+      } else {
+        config.data = requestParams;
+      }
+    } else if (method === 'DELETE') {
+      config.params = requestParams;
+    }
+
+    return config;
   }
 
   /**
