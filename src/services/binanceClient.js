@@ -5,12 +5,32 @@ const logger = require('../utils/logger');
 
 class BinanceClient {
   constructor() {
-    this.apiUrl = config.binance.apiUrl;
+    this.spotApiUrl = config.binance.spotApiUrl;
+    this.futuresApiUrl = config.binance.futuresApiUrl;
+    this.deliveryApiUrl = config.binance.deliveryApiUrl;
     this.apiKey = config.binance.apiKey;
     this.secretKey = config.binance.secretKey;
+  }
 
-    this.client = axios.create({
-      baseURL: this.apiUrl,
+  /**
+   * Get the appropriate base URL based on endpoint
+   */
+  _getBaseUrl(endpoint) {
+    if (endpoint.startsWith('/fapi')) {
+      return this.futuresApiUrl;
+    } else if (endpoint.startsWith('/dapi')) {
+      return this.deliveryApiUrl;
+    } else {
+      return this.spotApiUrl;
+    }
+  }
+
+  /**
+   * Create axios client with appropriate base URL
+   */
+  _createClient(baseURL) {
+    return axios.create({
+      baseURL,
       timeout: 30000,
       headers: {
         'X-MBX-APIKEY': this.apiKey
@@ -92,12 +112,17 @@ class BinanceClient {
    */
   async forwardRequest(method, endpoint, params = {}, headers = {}) {
     try {
+      // Get the appropriate base URL
+      const baseURL = this._getBaseUrl(endpoint);
+      const client = this._createClient(baseURL);
+
       // Determine if request requires signature
       const requiresSignature = this._requiresSignature(endpoint);
 
       logger.debug('Forwarding request to Binance', {
         method,
         endpoint,
+        baseURL,
         params,
         requiresSignature
       });
@@ -107,16 +132,17 @@ class BinanceClient {
       // Add custom headers
       if (headers) {
         requestConfig.headers = {
-          ...this.client.defaults.headers,
+          ...client.defaults.headers,
           ...headers
         };
       }
 
-      const response = await this.client.request(requestConfig);
+      const response = await client.request(requestConfig);
 
       logger.debug('Received response from Binance', {
         status: response.status,
-        endpoint
+        endpoint,
+        baseURL
       });
 
       return {
@@ -141,13 +167,32 @@ class BinanceClient {
    */
   _requiresSignature(endpoint) {
     const signedEndpoints = [
+      // Spot API
       '/api/v3/order',
       '/api/v3/openOrders',
       '/api/v3/allOrders',
       '/api/v3/account',
       '/api/v3/myTrades',
       '/sapi/',
-      '/wapi/'
+      '/wapi/',
+      // Futures API
+      '/fapi/v1/order',
+      '/fapi/v1/openOrders',
+      '/fapi/v1/allOrders',
+      '/fapi/v1/account',
+      '/fapi/v1/balance',
+      '/fapi/v1/positionRisk',
+      '/fapi/v1/userTrades',
+      '/fapi/v2/account',
+      '/fapi/v2/balance',
+      '/fapi/v2/positionRisk',
+      // Delivery API
+      '/dapi/v1/order',
+      '/dapi/v1/openOrders',
+      '/dapi/v1/allOrders',
+      '/dapi/v1/account',
+      '/dapi/v1/balance',
+      '/dapi/v1/positionRisk'
     ];
 
     return signedEndpoints.some(signedEndpoint => endpoint.includes(signedEndpoint));
