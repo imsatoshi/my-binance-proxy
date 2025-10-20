@@ -6,25 +6,26 @@ const logger = require('../utils/logger');
 /**
  * Proxy all requests to Binance API
  * Supports: GET, POST, PUT, DELETE methods
+ * Handles: /api/*, /sapi/*, /wapi/*, /fapi/*, /dapi/*
  */
 router.all('*', async (req, res, next) => {
   try {
-    // Skip health check endpoint
-    if (req.path === '/health') {
-      return next();
-    }
-
     const method = req.method;
-    // Use the full path as-is from the request
-    const endpoint = req.path;
+
+    // Reconstruct the full API path
+    // req.baseUrl contains the matched prefix (/api, /sapi, etc.)
+    // req.path contains the rest of the path
+    const endpoint = req.baseUrl + req.path;
+
     const params = { ...req.query, ...req.body };
 
     logger.info(`Proxying ${method} request`, {
       endpoint,
+      baseUrl: req.baseUrl,
+      path: req.path,
       fullUrl: req.originalUrl,
-      params: Object.keys(params).length > 0 ? params : 'none',
-      ip: req.ip,
-      userAgent: req.get('user-agent')
+      hasParams: Object.keys(params).length > 0,
+      ip: req.ip
     });
 
     // Forward request to Binance

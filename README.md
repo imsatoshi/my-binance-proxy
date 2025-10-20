@@ -138,27 +138,35 @@ GET http://your-vps-ip:8080/api/v3/account
 {
   "exchange": {
     "name": "binance",
+    "key": "你的_Binance_API_Key",
+    "secret": "你的_Binance_Secret_Key",
     "ccxt_config": {
-      "enableRateLimit": true,
+      "enableRateLimit": false,
       "urls": {
         "api": {
-          "public": "http://your-vps-ip:8080/api",
-          "private": "http://your-vps-ip:8080/api"
+          "public": "http://43.133.168.55:8080/api/v3",
+          "private": "http://43.133.168.55:8080/api/v3"
         }
       }
     },
     "ccxt_async_config": {
-      "enableRateLimit": true,
+      "enableRateLimit": false,
       "urls": {
         "api": {
-          "public": "http://your-vps-ip:8080/api",
-          "private": "http://your-vps-ip:8080/api"
+          "public": "http://43.133.168.55:8080/api/v3",
+          "private": "http://43.133.168.55:8080/api/v3"
         }
       }
     }
   }
 }
 ```
+
+**重要说明**：
+- 将 `43.133.168.55` 替换为你的实际 VPS IP 地址
+- `enableRateLimit` 设置为 `false`，因为代理已经处理了速率限制
+- API Key 和 Secret 配置在 Freqtrade 端，不要配置在 VPS 的 .env 文件中
+- 路径必须包含 `/api/v3`，这样请求会转发到 `https://api.binance.com/api/v3/...`
 
 ## 部署到 VPS
 

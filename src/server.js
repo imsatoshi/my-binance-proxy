@@ -27,22 +27,15 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Proxy routes - handle all API paths
-app.use(proxyRoutes);
+// Proxy all Binance API routes
+app.use('/api', proxyRoutes);
+app.use('/sapi', proxyRoutes);
+app.use('/wapi', proxyRoutes);
+app.use('/dapi', proxyRoutes);
+app.use('/fapi', proxyRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: {
-      message: 'Endpoint not found',
-      code: 'NOT_FOUND'
-    }
-  });
-});
 
 // Start server
 app.listen(config.server.port, config.server.host, () => {
