@@ -9,14 +9,20 @@ const logger = require('../utils/logger');
  */
 router.all('*', async (req, res, next) => {
   try {
+    // Skip health check endpoint
+    if (req.path === '/health') {
+      return next();
+    }
+
     const method = req.method;
-    // Prepend /api to the path since Express strips it from req.path
-    const endpoint = '/api' + req.path;
+    // Use the full path as-is from the request
+    const endpoint = req.path;
     const params = { ...req.query, ...req.body };
 
     logger.info(`Proxying ${method} request`, {
       endpoint,
-      originalPath: req.path,
+      fullUrl: req.originalUrl,
+      params: Object.keys(params).length > 0 ? params : 'none',
       ip: req.ip,
       userAgent: req.get('user-agent')
     });

@@ -27,8 +27,8 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Proxy routes
-app.use('/api', proxyRoutes);
+// Proxy routes - handle all API paths
+app.use(proxyRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
