@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const binanceClient = require('../services/binanceClient');
+const cacheService = require('../services/cacheService');
 const logger = require('../utils/logger');
 
 /**
@@ -19,7 +20,14 @@ router.all('*', async (req, res, next) => {
 
     const params = { ...req.query, ...req.body };
 
-    // Simplified logging - only log endpoint
+    // Try to get from cache first (only for GET requests)
+    const cachedResponse = cacheService.get(method, endpoint, params);
+    if (cachedResponse) {
+      logger.info(`${method} ${endpoint} [CACHED]`);
+      return res.status(200).json(cachedResponse);
+    }
+
+    // Log request
     logger.info(`${method} ${endpoint}`);
 
     // Forward request to Binance
@@ -31,6 +39,11 @@ router.all('*', async (req, res, next) => {
         'User-Agent': req.get('user-agent') || 'Binance-Proxy/1.0'
       }
     );
+
+    // Cache successful responses
+    if (response.status === 200 && response.data) {
+      cacheService.set(method, endpoint, params, response.data);
+    }
 
     // Set response headers
     if (response.headers['content-type']) {

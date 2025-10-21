@@ -5,6 +5,7 @@ const config = require('./config');
 const logger = require('./utils/logger');
 const errorHandler = require('./middleware/errorHandler');
 const proxyRoutes = require('./routes/proxy');
+const cacheService = require('./services/cacheService');
 
 const app = express();
 
@@ -23,7 +24,22 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    service: 'binance-proxy'
+    service: 'binance-proxy',
+    cache: cacheService.getStats()
+  });
+});
+
+// Cache stats endpoint
+app.get('/cache/stats', (req, res) => {
+  res.json(cacheService.getStats());
+});
+
+// Clear cache endpoint (for debugging)
+app.post('/cache/clear', (req, res) => {
+  cacheService.clear();
+  res.json({
+    status: 'ok',
+    message: 'Cache cleared successfully'
   });
 });
 
