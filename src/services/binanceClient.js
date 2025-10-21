@@ -61,47 +61,42 @@ class BinanceClient {
    * Prepare request with signature if needed
    */
   _prepareRequest(method, endpoint, params = {}, requiresSignature = false) {
-    let queryString = '';
-    let requestParams = { ...params };
-
-    if (Object.keys(requestParams).length > 0) {
-      queryString = this._buildQueryString(requestParams);
-    }
-
-    // Add timestamp for authenticated requests
-    if (requiresSignature) {
-      const timestamp = Date.now();
-      requestParams.timestamp = timestamp;
-
-      if (queryString) {
-        queryString += `&timestamp=${timestamp}`;
-      } else {
-        queryString = `timestamp=${timestamp}`;
-      }
-
-      // Generate signature
-      const signature = this._generateSignature(queryString);
-      requestParams.signature = signature;
-    }
-
-    // For GET requests, use query parameters
-    // For POST/PUT/DELETE, may need to use body or query depending on endpoint
     const config = {
       method,
       url: endpoint
     };
 
-    if (method === 'GET') {
-      config.params = requestParams;
-    } else if (method === 'POST' || method === 'PUT') {
-      // For signed requests, params go in query string
-      if (requiresSignature) {
-        config.params = requestParams;
+    // Add timestamp for authenticated requests
+    if (requiresSignature) {
+      const timestamp = Date.now();
+
+      // Build params with timestamp first
+      const allParams = {
+        ...params,
+        timestamp: timestamp
+      };
+
+      // Build query string for signature calculation
+      const queryString = this._buildQueryString(allParams);
+
+      // Generate signature
+      const signature = this._generateSignature(queryString);
+
+      // Add signature to params
+      const signedParams = {
+        ...allParams,
+        signature: signature
+      };
+
+      // For signed requests, always use query parameters (Binance requirement)
+      config.params = signedParams;
+    } else {
+      // For non-signed requests
+      if (method === 'GET' || method === 'DELETE') {
+        config.params = params;
       } else {
-        config.data = requestParams;
+        config.data = params;
       }
-    } else if (method === 'DELETE') {
-      config.params = requestParams;
     }
 
     return config;
@@ -119,16 +114,18 @@ class BinanceClient {
       // Determine if request requires signature
       const requiresSignature = this._requiresSignature(endpoint);
 
-      // Simplified debug log
-      // logger.debug('Forwarding request to Binance', {
-      //   method,
-      //   endpoint,
-      //   baseURL,
-      //   params,
-      //   requiresSignature
-      // });
-
       const requestConfig = this._prepareRequest(method, endpoint, params, requiresSignature);
+
+      // Debug logging for signed requests
+      if (requiresSignature) {
+        logger.debug('Signed request details', {
+          method,
+          endpoint,
+          params: requestConfig.params || requestConfig.data,
+          hasTimestamp: !!(requestConfig.params?.timestamp || requestConfig.data?.timestamp),
+          hasSignature: !!(requestConfig.params?.signature || requestConfig.data?.signature)
+        });
+      }
 
       // Add custom headers
       if (headers) {
