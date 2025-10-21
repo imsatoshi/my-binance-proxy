@@ -4,12 +4,20 @@
 
 ## 功能特性
 
-- ✅ 完整的 Binance REST API 代理
-- ✅ 自动处理 API 签名认证
+- ✅ 完整的 Binance REST API 透明代理
 - ✅ 支持所有 HTTP 方法（GET, POST, PUT, DELETE）
+- ✅ 透明转发请求（客户端负责签名）
 - ✅ 请求日志记录和错误处理
 - ✅ 健康检查端点
 - ✅ 易于部署和配置
+
+## 工作模式
+
+**透明代理模式**：
+- Proxy 不会修改或重新签名请求
+- 客户端（Freqtrade）负责生成 timestamp 和 signature
+- Proxy 仅转发请求到对应的 Binance API 端点
+- API Key 和 Secret 配置在客户端，**不需要在 VPS 配置**
 
 ## 架构设计
 
@@ -73,11 +81,14 @@ cp .env.example .env
 ```env
 PORT=8080
 HOST=0.0.0.0
-BINANCE_API_URL=https://api.binance.com
-BINANCE_API_KEY=your_api_key_here
-BINANCE_SECRET_KEY=your_secret_key_here
+BINANCE_SPOT_API_URL=https://api.binance.com
+BINANCE_FUTURES_API_URL=https://fapi.binance.com
+BINANCE_DELIVERY_API_URL=https://dapi.binance.com
+# API Key/Secret 不需要配置（客户端负责签名）
+BINANCE_API_KEY=
+BINANCE_SECRET_KEY=
 LOG_LEVEL=info
-ENABLE_REQUEST_LOG=true
+ENABLE_REQUEST_LOG=false
 ```
 
 ### 3. 启动服务
