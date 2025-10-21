@@ -40,7 +40,9 @@ app.use(errorHandler);
 // Start server
 app.listen(config.server.port, config.server.host, () => {
   logger.info(`Binance Proxy Server started on ${config.server.host}:${config.server.port}`);
-  logger.info(`Proxying requests to: ${config.binance.apiUrl}`);
+  logger.info(`Spot API: ${config.binance.spotApiUrl}`);
+  logger.info(`Futures API: ${config.binance.futuresApiUrl}`);
+  logger.info(`Delivery API: ${config.binance.deliveryApiUrl}`);
 });
 
 // Graceful shutdown
