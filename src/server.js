@@ -13,10 +13,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging
-if (config.logging.enableRequestLog) {
-  app.use(morgan('combined'));
-}
+// Request logging (disabled for less verbose output)
+// if (config.logging.enableRequestLog) {
+//   app.use(morgan('combined'));
+// }
 
 // Health check endpoint
 app.get('/health', (req, res) => {

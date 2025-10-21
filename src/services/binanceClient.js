@@ -119,13 +119,14 @@ class BinanceClient {
       // Determine if request requires signature
       const requiresSignature = this._requiresSignature(endpoint);
 
-      logger.debug('Forwarding request to Binance', {
-        method,
-        endpoint,
-        baseURL,
-        params,
-        requiresSignature
-      });
+      // Simplified debug log
+      // logger.debug('Forwarding request to Binance', {
+      //   method,
+      //   endpoint,
+      //   baseURL,
+      //   params,
+      //   requiresSignature
+      // });
 
       const requestConfig = this._prepareRequest(method, endpoint, params, requiresSignature);
 
@@ -139,11 +140,11 @@ class BinanceClient {
 
       const response = await client.request(requestConfig);
 
-      logger.debug('Received response from Binance', {
-        status: response.status,
-        endpoint,
-        baseURL
-      });
+      // logger.debug('Received response from Binance', {
+      //   status: response.status,
+      //   endpoint,
+      //   baseURL
+      // });
 
       return {
         status: response.status,
@@ -175,24 +176,48 @@ class BinanceClient {
       '/api/v3/myTrades',
       '/sapi/',
       '/wapi/',
-      // Futures API
+      // Futures API - Trading
       '/fapi/v1/order',
+      '/fapi/v1/batchOrders',
       '/fapi/v1/openOrders',
       '/fapi/v1/allOrders',
+      '/fapi/v1/countdownCancelAll',
+      // Futures API - Account & Positions
       '/fapi/v1/account',
       '/fapi/v1/balance',
       '/fapi/v1/positionRisk',
+      '/fapi/v1/positionSide/dual',
+      '/fapi/v1/positionMargin',
       '/fapi/v1/userTrades',
+      '/fapi/v1/income',
+      '/fapi/v1/commissionRate',
+      // Futures API - Leverage & Margin
+      '/fapi/v1/leverage',
+      '/fapi/v1/marginType',
+      '/fapi/v1/leverageBracket',
+      // Futures API - V2 endpoints
       '/fapi/v2/account',
       '/fapi/v2/balance',
       '/fapi/v2/positionRisk',
-      // Delivery API
+      // Delivery API - Trading
       '/dapi/v1/order',
+      '/dapi/v1/batchOrders',
       '/dapi/v1/openOrders',
       '/dapi/v1/allOrders',
+      '/dapi/v1/countdownCancelAll',
+      // Delivery API - Account & Positions
       '/dapi/v1/account',
       '/dapi/v1/balance',
-      '/dapi/v1/positionRisk'
+      '/dapi/v1/positionRisk',
+      '/dapi/v1/positionSide/dual',
+      '/dapi/v1/positionMargin',
+      '/dapi/v1/userTrades',
+      '/dapi/v1/income',
+      '/dapi/v1/commissionRate',
+      // Delivery API - Leverage & Margin
+      '/dapi/v1/leverage',
+      '/dapi/v1/marginType',
+      '/dapi/v1/leverageBracket'
     ];
 
     return signedEndpoints.some(signedEndpoint => endpoint.includes(signedEndpoint));

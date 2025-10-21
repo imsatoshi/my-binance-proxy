@@ -19,14 +19,8 @@ router.all('*', async (req, res, next) => {
 
     const params = { ...req.query, ...req.body };
 
-    logger.info(`Proxying ${method} request`, {
-      endpoint,
-      baseUrl: req.baseUrl,
-      path: req.path,
-      fullUrl: req.originalUrl,
-      hasParams: Object.keys(params).length > 0,
-      ip: req.ip
-    });
+    // Simplified logging - only log endpoint
+    logger.info(`${method} ${endpoint}`);
 
     // Forward request to Binance
     const response = await binanceClient.forwardRequest(
